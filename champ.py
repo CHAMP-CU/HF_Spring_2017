@@ -69,19 +69,19 @@ subframe = df.ix[:, mask]
 plt.rcParams.update({'figure.autolayout': True})
 plt.figure(figsize=(13.33, 6.5))
 positive = DataFrame(index=loc_tag.index, columns=loc_tag.columns)
-for i in range(1, 15):   
-    for j in range(8):
-        positive.ix[i, j] = (df.ix[:, rating*(mask*(dic['Data_type']=='Ordinal')\
-        					*(dic['Location']==loc_matrix.columns[i]))\
-        					*(tag_matrix.ix[j])].dropna() > 3).mean().mean()
-        if positive.ix[i, j]==positive.ix[i, j]:
+for i in range(1, 15):
+	for j in range(8):
+		positive.ix[i, j] = (df.ix[:, rating*(mask*(dic['Data_type']=='Ordinal')\
+			*(dic['Location']==loc_matrix.columns[i]))\
+			*(tag_matrix.ix[j])].dropna() > 3).mean().mean()
+		if positive.ix[i, j]==positive.ix[i, j]:
 			if np.abs(positive.ix[i, j]-0.5) > 0.2:
 				textcol ='w'
 			else:
 				textcol = 'k'
-			plt.annotate('%2.0f%%' % (100*positive.ix[i, j]), (i, j), 
-        		va='center', ha='center', size='small', 
-        		color=textcol, weight='bold')
+				plt.annotate('%2.0f%%' % (100*positive.ix[i, j]), (i, j),
+				va='center', ha='center', size='small',
+				color=textcol, weight='bold')
 plt.imshow(np.array(100*positive.ix[:, :8], float).T, interpolation='nearest', 
 					cmap=plt.cm.get_cmap('YlGnBu', 4), vmin=60, vmax=100)
 plt.yticks(np.arange(8), loc_tag.columns, rotation=0, weight='bold')
@@ -95,16 +95,16 @@ plt.rcParams.update({'figure.autolayout': False})
 
 plt.rcParams.update({'figure.autolayout': True})
 plt.figure(figsize=(10, 10))
-for i in range(1, 15):   
-    for j in range(8):
-        if positive.ix[i, j]==positive.ix[i, j]:
+for i in range(1, 15):
+	for j in range(8):
+		if positive.ix[i, j]==positive.ix[i, j]:
 			if np.abs(positive.ix[i, j]-0.5) > 0.2:
 				textcol ='w'
 			else:
 				textcol = 'k'
-			plt.annotate('%2.0f%%' % (100*positive.ix[i, j]), (j, i), 
-        		va='center', ha='center', size='x-small', 
-        		color=textcol, weight='bold')
+				plt.annotate('%2.0f%%' % (100*positive.ix[i, j]), (j, i),
+					va='center', ha='center', size='x-small',
+					color=textcol, weight='bold')
 plt.imshow(np.array(100*positive.ix[:, :8], float), interpolation='nearest', 
 					cmap=plt.cm.get_cmap('YlGnBu', 4), vmin=60, vmax=100)
 plt.gca().xaxis.tick_top()
@@ -140,21 +140,19 @@ for j in range(0, 15):
 	plt.subplots_adjust(left=0.75)
 	plt.savefig("../results/figs/scorecard_%s" % loc_matrix.columns[j], dpi=72, transparent=True)
 	plt.clf()
-       
-    
 
-print time.asctime()
-print '20 tests'
-print '80 participants'
+print(time.asctime())
+print('20 tests')
+print('80 participants')
 for i in np.argsort(np.array(dic['Order_Asked'][mask], int))[1:]:
-	print 'Q%03i' % np.array(dic['Order_Asked'][mask], int)[i]
-	print dic['Location'][mask][i]
-	print dic['Question_Text'][mask][i]
+	print('Q%03i' % np.array(dic['Order_Asked'][mask], int)[i])
+	print(dic['Location'][mask][i])
+	print(dic['Question_Text'][mask][i])
 	tags = tag_matrix.ix[:, mask].ix[:, i]
-	print "Tags: "+'%s, '*tags.sum() % tuple(tags.index.str.lower()[tags])
+	print("Tags: "+'%s, '*tags.sum() % tuple(tags.index.str.lower()[tags]))
 	if dic['Data_type'][mask][i] == 'Ordinal':
-		print dic['Data_values'][mask][i]
-		print "Category\t\tn\tMean\t1\t2\t3\t4\t5\t6\t(4-6)\tpWilc.\tpBinom."
+		print(dic['Data_values'][mask][i])
+		print("Category\t\tn\tMean\t1\t2\t3\t4\t5\t6\t(4-6)\tpWilc.\tpBinom.")
 		for j in range(len(category_names)):
 			width = np.zeros(6)
 			total = subframe.ix[:, i].ix[categories.ix[:, j]].valid().count()
@@ -166,12 +164,12 @@ for i in np.argsort(np.array(dic['Order_Asked'][mask], int))[1:]:
 			p0 = (subframe.ix[:, i].ix[-categories.ix[:, j]].dropna() > 3).mean()
 			pval_binom = stats.binom_test((yes, no), p=p0)
 			pval_comb = stats.combine_pvalues((pval, pval_binom))[1]
-			print '%21s\t%i' % (category_names[j], total) + '\t%2.1f' % (subframe.ix[:, i].ix[categories.ix[:, j]]).mean() + '\t%3.1f%%'*6 % tuple(width*100)+'\t%3.1f%%' % (width[3:].sum()*100) +'\t%3.2f' % (pval)+'*'*(pval < 0.05)+'\t%3.2f' % (pval_binom)+'*'*(pval_binom < 0.05)
+			print('%21s\t%i' % (category_names[j], total) + '\t%2.1f' % (subframe.ix[:, i].ix[categories.ix[:, j]]).mean() + '\t%3.1f%%'*6 % tuple(width*100)+'\t%3.1f%%' % (width[3:].sum()*100) +'\t%3.2f' % (pval)+'*'*(pval < 0.05)+'\t%3.2f' % (pval_binom)+'*'*(pval_binom < 0.05))
 			#print '%21s\t%i' % (category_names[j], total) + '\t%2.1f' % (subframe.ix[:, i].ix[categories.ix[:, j]]).mean() + '\t%3.1f%%'*6 % tuple(width*100) +'\t%3.1f%%' % (width[3:].sum()*100)+'\t%3.2f' % (pval_binom)+'*'*(pval < 0.05)
 		print
 	elif dic['Data_type'][mask][i] == 'Binary':
 		responsetypes = dic['Data_values'][mask][i].split(';')
-		print "Category\t\t n\t"+ '%s\t'*len(responsetypes) % tuple(responsetypes)+"p-value"
+		print("Category\t\t n\t"+ '%s\t'*len(responsetypes) % tuple(responsetypes)+"p-value")
 		for j in range(len(category_names)):
 			yes = (subframe.ix[:, i].ix[categories.ix[:, j]]==responsetypes[0]).sum()
 			no = (subframe.ix[:, i].ix[categories.ix[:, j]]==responsetypes[1]).sum()
@@ -181,11 +179,11 @@ for i in np.argsort(np.array(dic['Order_Asked'][mask], int))[1:]:
 				pval = stats.binom_test((yes, no), p=p0)
 			else:
 				pval = np.nan
-			print '%21s\t%i' % (category_names[j], total) + '\t%3.1f%%'*2 % (yes*1./total*100, no*1./total*100)+'\t%3.2f' % (pval)+'*'*(pval < 0.05)
+			print('%21s\t%i' % (category_names[j], total) + '\t%3.1f%%'*2 % (yes*1./total*100, no*1./total*100)+'\t%3.2f' % (pval)+'*'*(pval < 0.05))
 		print
 	elif (dic['Data_type'][mask][i] == 'Categorical') *(i>2):
 		responsetypes = dic['Data_values'][mask][i].split(';')
-		print "Category\t\t n\t"+ '%s\t'*len(responsetypes) % tuple(responsetypes)+"p-value"
+		print("Category\t\t n\t"+ '%s\t'*len(responsetypes) % tuple(responsetypes)+"p-value")
 		for j in range(len(category_names)):
 			width = np.zeros(len(responsetypes))
 			width_not = np.zeros(len(responsetypes))
@@ -200,19 +198,19 @@ for i in np.argsort(np.array(dic['Order_Asked'][mask], int))[1:]:
 			else:
 				pval = np.nan
 
-			print '%21s\t%i' % (category_names[j], total) + '\t%3.1f%%'*len(responsetypes) % tuple(width/total*100)+'\t%3.2f' % (pval)+'*'*(pval < 0.05)
+			print('%21s\t%i' % (category_names[j], total) + '\t%3.1f%%'*len(responsetypes) % tuple(width/total*100)+'\t%3.2f' % (pval)+'*'*(pval < 0.05))
 		print
 	elif (dic['Data_type'][mask][i] == 'Count')*(i > 5):
 
 		responsetypes = np.array(np.unique(subframe.ix[:, i].dropna()), int)
-		print "Category\t\tn\t"+"Mean"+ "\t%s"*len(responsetypes) % tuple(responsetypes)+ "\tp-value"
+		print("Category\t\tn\t"+"Mean"+ "\t%s"*len(responsetypes) % tuple(responsetypes)+ "\tp-value")
 		for j in range(len(category_names)):
 			width = np.zeros(len(responsetypes))
 			total = np.in1d(subframe.ix[:, i].ix[categories.ix[:, j]], responsetypes).sum()
 			for k in range(len(responsetypes)):
 				width[k] = (subframe.ix[:, i].ix[categories.ix[:, j]]==responsetypes[k]).sum()*1./total
 			pval = stats.ranksums(subframe.ix[:, i].ix[categories.ix[:, j]].dropna(), subframe.ix[:, i].ix[-categories.ix[:, j]].dropna())[1]
-			print '%21s\t%i' % (category_names[j], total) + '\t%2.1f' % (subframe.ix[:, i].ix[categories.ix[:, j]]).mean() + '\t%3.1f%%'*len(responsetypes) % tuple(width*100)+'\t%3.2f' % (pval)+'*'*(pval < 0.05)
+			print('%21s\t%i' % (category_names[j], total) + '\t%2.1f' % (subframe.ix[:, i].ix[categories.ix[:, j]]).mean() + '\t%3.1f%%'*len(responsetypes) % tuple(width*100)+'\t%3.2f' % (pval)+'*'*(pval < 0.05))
 		print
 	elif (dic['Data_type'][mask][i].lower() == 'free response') or (dic['Data_type'][mask][i] == 'Comment'):
 		for j in range(len(subframe.ix[:, i])):
@@ -220,8 +218,8 @@ for i in np.argsort(np.array(dic['Order_Asked'][mask], int))[1:]:
 				print
 				cat_tags = '\t\t'+'%s, '*(categories.ix[j].sum()-1) % tuple(category_names[categories.ix[j]][1:])
 
-				print '\t'+'\n\t'.join(wrap(subframe.ix[:, i][j], 70))
-				print '\n\t\t'.join(wrap(cat_tags, 70))
+				print('\t'+'\n\t'.join(wrap(subframe.ix[:, i][j], 70)))
+				print('\n\t\t'.join(wrap(cat_tags, 70)))
 	elif (dic['Data_type'][mask][i].lower() == 'multiple selection'):
 		selections = -DataFrame(index=df.index, columns= dic['Data_values'][mask][i].split(';'),
 				dtype=bool)
@@ -230,16 +228,16 @@ for i in np.argsort(np.array(dic['Order_Asked'][mask], int))[1:]:
 				selections.ix[j, k] =  selections.columns[k] in subframe.ix[:, i][j]
 
 		for j in range(len(selections.columns)):
-			print '%70s\t' % (selections.columns[j]) + '\t%2.1f%%' % (100*selections.mean(0)[j])
+			print('%70s\t' % (selections.columns[j]) + '\t%2.1f%%' % (100*selections.mean(0)[j]))
 	elif dic['Data_type'][mask][i] == 'Continuous':
-		print dic['Data_values'][mask][i]
-		print "Category\t\tn\tMean\tStd.\tMin.\t25%\t50%\t75%\tMax.\tp-value"
+		print(dic['Data_values'][mask][i])
+		print("Category\t\tn\tMean\tStd.\tMin.\t25%\t50%\t75%\tMax.\tp-value")
 		for j in range(len(category_names)):
 			description = subframe.ix[:, i].ix[categories.ix[:, j]].describe()
 			pop1 = subframe.ix[:, i].ix[categories.ix[:, j]].dropna()
 			pop2 = subframe.ix[:, i].ix[-categories.ix[:, j]].dropna()
 			pval = stats.ttest_ind(pop1, pop2)[1]
-			print '%21s\t%i' % (category_names[j], description['count'])+'\t%3.1f'*(len(description)-1) % tuple(description[1:])+ '\t%3.2f' % (pval)+'*'*(pval < 0.05)
+			print('%21s\t%i' % (category_names[j], description['count'])+'\t%3.1f'*(len(description)-1) % tuple(description[1:])+ '\t%3.2f' % (pval)+'*'*(pval < 0.05))
 		print
 
 def gauge_chart_ordinal_cross(responses, categories):
