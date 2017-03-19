@@ -157,7 +157,7 @@ for i in np.argsort(np.array(dic['Order_Asked'][mask], int))[1:]:
 			width = np.zeros(6)
 			total = subframe.ix[:, i].ix[categories.ix[:, j]].valid().count()
 			width = np.histogram(subframe.ix[:, i].ix[categories.ix[:, j]],
-							bins=np.arange(1, 8), range=(bins.min(),bins.max()),
+							bins=np.arange(1, 8), range=(1,7),
 							normed=True)[0]
 			pval = stats.ranksums(subframe.ix[:, i].ix[categories.ix[:, j]].dropna(), subframe.ix[:, i].ix[-categories.ix[:, j]].dropna())[1]
 			yes = (subframe.ix[:, i].ix[categories.ix[:, j]].dropna() > 3).sum()
@@ -246,7 +246,7 @@ def gauge_chart_ordinal_cross(responses, categories):
 	stack = DataFrame(columns=np.arange(1, 7), index=categories.columns)
 	for i in range(categories.shape[-1]):
 		stack.ix[i] = np.histogram(responses[categories.ix[:, i]],
-			np.arange(1, 8), normed=True)[0]
+			bins=np.arange(1, 8), range=(1,7), normed=True)[0]
 	(100*stack[::-1].ix[:,  ::-1]).plot(kind='barh', stacked=True,
 		width=1, edgecolor='w', colors=plt.cm.RdBu_r(np.linspace(0.25, 0.75, 6)),
 		align='edge', figsize=(12, 6), legend=False)
@@ -254,7 +254,7 @@ def gauge_chart_ordinal_cross(responses, categories):
 			[responses.name==dic['Fall_2016_Question_Code']][0], 88)), size='medium')
 	for i in range(6):
 		plt.axvline(np.cumsum(np.histogram(responses[categories.ix[:, 0]],
-		np.arange(1, 8), normed=True)[0][::-1])[i]*100, color='lightgray')
+		np.arange(1, 8), range=(1,7), normed=True)[0][::-1])[i]*100, color='lightgray')
 	plt.axis('tight')
 	plt.xticks(np.arange(0, 101, 10), ('%i%% '*11 % tuple(np.arange(0, 101, 10))).split())
 	#plt.legend(bbox_to_anchor=(0., 1.0, 1.12, -0.25))
@@ -361,7 +361,7 @@ def multiple_selection(responses, categories):
 def gauge_chart_ordinal_top(responses, category):
 	values = dic['Data_values'][responses.name==dic['Fall_2016_Question_Code']][0]
 	stack = DataFrame(index=np.arange(1, 7), columns=[category.name])
-	stack[category.name] = np.histogram(responses[category], np.arange(1, 8), normed=True)[0]
+	stack[category.name] = np.histogram(responses[category], np.arange(1, 8), range=(1,7), normed=True)[0]
 	(100*stack)[::-1].T.plot(kind='barh', stacked=True, width=1, edgecolor='w',
 		colors=plt.cm.RdBu_r(np.linspace(0.25, 0.75, 6)), align='edge',
 		figsize=(12, 3), legend=False)
@@ -441,4 +441,5 @@ if makefigs:
 			plt.savefig(output_path+"/figs/topline/"+'%03i' % fignum)
 			plt.close()
 
+print("Finished the program")
 sys.exit()
