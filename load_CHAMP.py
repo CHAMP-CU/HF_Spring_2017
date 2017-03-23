@@ -5,16 +5,9 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from textblob import TextBlob
 from pandas import DataFrame
 import pandas as pd
-import matplotlib
-import json
-from textwrap import wrap
-from scipy import stats
 import re
-import sys
-import champ_funcs as cf
 
 #Define plot styles
 
@@ -31,6 +24,9 @@ plt.rcParams['axes.color_cycle'] = [u'#30a2da', u'#fc4f30', u'#e5ae38',  '#beaed
 
 #Dictionary data frame
 # Load the data dictionary
+# ======================================================
+# CHANGE THIS TO EXCEL AND MAKE DATA DICTIONARY IN EXCEL
+# ======================================================
 dic = np.genfromtxt("Data Dictionary - Fall 2016.tsv",
 					skip_header=0, names=True, dtype=np.object, delimiter='\t')
 

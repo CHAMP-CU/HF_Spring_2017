@@ -1,18 +1,20 @@
+# This file runs the entire CHAMP Data Analysis
+# Version: Spring 2017
+# Authors: Ryan Hardy, Thomas Jeffries, Philip Chow
+# Modified: 20170319
+
 import numpy as np
 import matplotlib.pyplot as plt
-from textblob import TextBlob
 from pandas import DataFrame
 import pandas as pd
-import matplotlib
-import json
 from textwrap import wrap, fill
 from scipy import stats
-import re
 import sys
-import champ_funcs as cf
 import time
 
 # Load the data
+# df = actual questionnaire data
+# dic = data dictionary information
 from load_CHAMP import *
 plt.close('all')
 
@@ -42,6 +44,7 @@ plt.savefig("../results/figs/smaller", dpi=96)
 plt.close()
 
 #Isolate responses that ask for ratings
+#(Rate this aspect or how much did this adversely affect you)
 rating = pd.Series(dic['Question_Text']).str.contains("(^|\s)(R|r)ate|adversely")
 rating.index = df.columns
 
@@ -62,10 +65,14 @@ mask+= (dic['Data_type']=="Multiple selection")+(dic['Data_type']=="Multiple Sel
 mask+= (dic['Data_type']=="Continuous")'''
 
 #Exclude questions with fewer than 8 responses
+#8 responses because first two tests were dry runs with CHAMP and expert review
+#May change this number based on how many dry runs we do
+#Subframe is dataframe that has questions with less than 8 responses dropped
 mask = np.array(df.count(axis=0) > 8)#+(df.sum(0).str.count('NaN') < len(df)-8)
 subframe = df.ix[:, mask]
 
 #Compute interface averages
+#Overall scorecard - horiz orientation
 plt.rcParams.update({'figure.autolayout': True})
 plt.figure(figsize=(13.33, 6.5))
 positive = DataFrame(index=loc_tag.index, columns=loc_tag.columns)
@@ -93,6 +100,7 @@ plt.colorbar(label='% positive (4-6)', format='%2.0f%%',  shrink=0.8,
 plt.savefig("../results/figs/scorecard", dpi=160)
 plt.rcParams.update({'figure.autolayout': False})
 
+#Overall scorecard - vertical orientation
 plt.rcParams.update({'figure.autolayout': True})
 plt.figure(figsize=(10, 10))
 for i in range(1, 15):
@@ -116,6 +124,7 @@ plt.savefig("../results/figs/scorecard_vertical", dpi=160)
 plt.rcParams.update({'figure.autolayout': False})
 plt.close('all')
 
+#Scorecards by area
 plt.figure(figsize=(3.75,  5.75))
 plt.subplots_adjust(left=0.75)
 for j in range(0, 15):
@@ -141,6 +150,8 @@ for j in range(0, 15):
 	plt.savefig("../results/figs/scorecard_%s" % loc_matrix.columns[j], dpi=72, transparent=True)
 	plt.clf()
 
+# Null hypothesis = sub population data is drawn from the same distribution as the total population data
+# Total population data is only the total number of participants
 print(time.asctime())
 print('20 tests')
 print('80 participants')
@@ -150,6 +161,8 @@ for i in np.argsort(np.array(dic['Order_Asked'][mask], int))[1:]:
 	print(dic['Question_Text'][mask][i])
 	tags = tag_matrix.ix[:, mask].ix[:, i]
 	print("Tags: "+'%s, '*tags.sum() % tuple(tags.index.str.lower()[tags]))
+	
+	# Checks Ordinal data, which is used in rating questions (rate from 1-6)
 	if dic['Data_type'][mask][i] == 'Ordinal':
 		print(dic['Data_values'][mask][i])
 		print("Category\t\tn\tMean\t1\t2\t3\t4\t5\t6\t(4-6)\tpWilc.\tpBinom.")

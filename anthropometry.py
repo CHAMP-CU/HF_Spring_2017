@@ -6,6 +6,8 @@ pars = ['STATURE', 'BIDELTOID_BRTH', 'THUMB-TIP_REACH']
 
 orioncol = 'orange'
 isscol = 'coral'
+
+# Percentile limits (5th percentile Japanese Female, 95th percentile American male)
 jf = np.array([[61.8, 15.3, 28.2],
 				[1.9454,	0.7903,	1.5198]])
 am = np.array([[70.8,	19.3,	32.1],

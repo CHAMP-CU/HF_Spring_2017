@@ -4,19 +4,6 @@
 # Created: 20161110
 # Modified: 20161110
 
-import numpy as np
-import matplotlib.pyplot as plt
-from textblob import TextBlob
-from pandas import DataFrame
-import pandas as pd
-import matplotlib
-import json
-from textwrap import wrap
-from scipy import stats
-import re
-import sys
-
-
 def standard_major(given_major):
     major = given_major.lower()
     if given_major == "macs":
