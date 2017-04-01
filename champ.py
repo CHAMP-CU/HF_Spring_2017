@@ -124,7 +124,7 @@ plt.savefig("../results/figs/scorecard_vertical", dpi=160)
 plt.rcParams.update({'figure.autolayout': False})
 plt.close('all')
 
-#Scorecards by area
+#Scorecards by subsystem
 plt.figure(figsize=(3.75,  5.75))
 plt.subplots_adjust(left=0.75)
 for j in range(0, 15):
@@ -151,7 +151,7 @@ for j in range(0, 15):
 	plt.clf()
 
 # Null hypothesis = sub population data is drawn from the same distribution as the total population data
-# Total population data is only the total number of participants
+# Total population data is the total number of participants
 print(time.asctime())
 print('20 tests')
 print('80 participants')
@@ -166,6 +166,7 @@ for i in np.argsort(np.array(dic['Order_Asked'][mask], int))[1:]:
 	if dic['Data_type'][mask][i] == 'Ordinal':
 		print(dic['Data_values'][mask][i])
 		print("Category\t\tn\tMean\t1\t2\t3\t4\t5\t6\t(4-6)\tpWilc.\tpBinom.")
+		# Rates data by each demographic
 		for j in range(len(category_names)):
 			width = np.zeros(6)
 			total = subframe.ix[:, i].ix[categories.ix[:, j]].valid().count()
@@ -410,7 +411,7 @@ def gauge_chart_categorical_top(responses, category):
 	plt.subplots_adjust(left=0.12, bottom=0.3, top=0.7)
 
 
-makefigs = True
+makefigs = False
 if makefigs:
 	for i in np.argsort(np.array(dic['Order_Asked'][mask], int))[1:]:
 		fignum = np.array(dic['Order_Asked'][mask], int)[i]

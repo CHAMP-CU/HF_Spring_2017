@@ -21,10 +21,13 @@ plt.rcParams['savefig.facecolor']='w'
 plt.rcParams['axes.color_cycle'] = [u'#30a2da', u'#fc4f30', u'#e5ae38',  '#beaed4', '#fdc086']
 #plt.rcParams.update({'figure.autolayout': True})
 
-# Load the data dictionary
-dic_file = "Data Dictionary - Spring 2017.xlsx"
-dic = pd.read_excel(dic_file)
 
+#Dictionary data frame
+# Load the data dictionary
+dic = np.genfromtxt("Data Dictionary - Fall 2016.tsv",
+					skip_header=0, names=True, dtype=np.object, delimiter='\t')
+
+# dic['Data_type']
 # Save the locations of the different questions for easy access
 locs = np.unique(dic['Location'])
 
@@ -58,26 +61,29 @@ for i in range(len(datatype)):
 		datatype[i] = np.object
 
 # Save the file path and name of the data
-responses_file = "Test Responses.xlsx"
+responses_file = "Fall 2016 CHAMP Responses.xlsx"
 
 #Output path
 output_path = '../results'
 
 # Load in the test data responses
-df = pd.read_excel(responses_file, names=dic["Spring_2017_Question_Code"], parse_cols=len(dic)-1)
-
-# There should be no negative values in the data
-# Zero is allowed because of number of flight hours
-df.ix[np.where(df<0)] = np.nan
+#data = np.genfromtxt(responses_file, delimiter='\t',
+#					dtype=datatype, missing_values='',
+#					skip_header=0, names=True)
+#df = DataFrame(data)
+df = pd.read_excel(responses_file, names=dic["Fall_2016_Question_Code"], parse_cols=len(dic)-1)
+#df = df.convert_objects( dict(zip(dic["Fall_2016_Question_Code"], datatype)))
+#There should be no negative values in the data
+df[df<0] = np.nan
 
 # Change the column names of the DataFrame
-df.columns = dic["Spring_2017_Question_Code"]
+df.columns = dic["Fall_2016_Question_Code"]
 
 #Exclude responses according to dictionary
 exclude = np.zeros(df.shape, bool)
 for i in range(len(df.T)):
 	# Skips rows that have nothing in exclude_from column
-	if pd.isnull(dic['Exclude_from'][i]):
+	if dic['Exclude_from'][i] == '':
 		continue
 	codes = dic['Exclude_from'][i].split(',')
 	for code in codes:
@@ -89,7 +95,7 @@ for i in range(len(df.T)):
 			test = int(code[2])
 			crew = int(code[2])
 			exclude[(df.crew_test==test)*(df.crew_test==crew), i] = True
-df[exclude*(datatype!=np.object)] = np.nan
+df = df.mask(exclude*(datatype!=np.object), try_cast=True)
 
 #===Ad-hoc data corrections go here===
 #	Always justify corrections to the data
@@ -105,15 +111,15 @@ experience = -DataFrame(index=df.index, columns= dic['Data_values'][13].split(';
 				dtype=bool)
 for i in range(len(df)):
 	for j in range(experience.shape[-1]):
-		if df.crew_experience_01[i] != df.crew_experience_01[i]:
+		if df.crew_experience[i] != df.crew_experience[i]:
 			continue
-		experience.ix[i, j] =  experience.columns[j] in df.crew_experience_01[i]
+		experience.ix[i, j] =  experience.columns[j] in df.crew_experience[i]
 
 
 # === Classify questions by tag and location ===
 
 # Pulls last 10 columns of data dictionary for tag matrix
-tag_matrix = dic.ix[:,-10:].isin([1]).T
+tag_matrix = (DataFrame(dic).ix[:, -11:] =='1').T
 tag_matrix.columns = df.columns
 tags = np.array(tag_matrix.index)
 tags[3] = 'Location'
@@ -121,14 +127,14 @@ tag_matrix.index = tags
 
 loc_matrix =  pd.get_dummies(dic['Location']).astype(bool)
 loc_tag = (loc_matrix.astype(int).T.dot(np.matrix(tag_matrix).T))
-loc_tag.index = ['Auxiliary', 'Airlock', 'Command', 'Emergency',
-				'Exercise', 'Galley', 'Hatches', 'Hygiene', 'ICH',
-				'Science', 'Sleep Stations', 'Technology Development']
+loc_tag.index = ['Auxiliary', 'Airlock', 'Command', 'ECLSS',
+				'Emergency', 'Exercise', 'Galley',
+				'Hatches', 'Hygiene', 'ICH', 'Science', 'Sleep Stations',
+				'Storage', 'Technology Development', 'Windows']
 loc_tag.columns = tag_matrix.index
 
 # === End classify questions by tag and location ===
 
-# Plot parameters
 plt.rcParams.update({'figure.autolayout': True})
 
 plt.figure(figsize=(8, 8))
@@ -152,6 +158,7 @@ plt.savefig('../results/figs/loc_breakdown')
 plt.close()
 
 plt.rcParams.update({'figure.autolayout': False})
+
 
 
 # Read in the particpant nationalities responses
@@ -178,8 +185,9 @@ m_f['stem_major'] = (m_f.aerospace_engineering==1) | (m_f.physics==1) | \
 
 m_f['non_stem'] = -m_f.stem_major
 
-# Classify by gender
-gender_ratio_test = pd.Series(index=df.crew_test.astype(np.int64).unique())
+#Classify by gender
+
+gender_ratio_test = pd.Series(index=df.crew_test.unique())
 gender_ratio_data = pd.Series(index=df.index)
 for i in gender_ratio_test.index:
 	gender_ratio_test[i] = (df.crew_gender[df.crew_test==i]=='Male').mean()
