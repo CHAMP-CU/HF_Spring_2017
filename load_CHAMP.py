@@ -64,7 +64,7 @@ responses_file = "Test Responses.xlsx"
 output_path = '../results'
 
 # Load in the test data responses
-df = pd.read_excel(responses_file, names=dic["Spring_2017_Question_Code"], parse_cols=len(dic)-1)
+df = pd.read_excel(responses_file, names=dic["Spring_2017_Question_Code"], parse_cols=len(dic))
 
 # There should be no negative values in the data
 # Zero is allowed because of number of flight hours

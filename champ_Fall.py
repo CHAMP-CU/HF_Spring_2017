@@ -15,7 +15,7 @@ import time
 # Load the data
 # df = actual questionnaire data
 # dic = data dictionary information
-from load_CHAMP import *
+from load_CHAMP_Fall import *
 plt.close('all')
 
 #Define plot styles
@@ -79,19 +79,11 @@ subframe = df.ix[:, mask]
 plt.rcParams.update({'figure.autolayout': True})
 plt.figure(figsize=(13.33, 6.5))
 positive = DataFrame(index=loc_tag.index, columns=loc_tag.columns)
-for i in range(1, len(loc_tag)):
+for i in range(1, 15):
 	for j in range(8):
-		# The temp vars are needed to exist to force the indexes of each series
-		# to match up; otherwise the multiplication doesn't work
-		temp1 = dic['Data_type']=='Ordinal'
-		temp1.index = df.columns
-		temp2 = dic['Location']==loc_matrix.columns[i]
-		temp2.index = df.columns
-		temp3 = tag_matrix.ix[j]
-		temp3.index = df.columns
-		
-		positive.ix[i, j] = (df.ix[:, (rating*mask*temp1\
-			*temp2*temp3).dropna()] > 3).mean().mean()
+		positive.ix[i, j] = (df.ix[:, rating*(mask*(dic['Data_type']=='Ordinal')\
+			*(dic['Location']==loc_matrix.columns[i]))\
+			*(tag_matrix.ix[j])].dropna() > 3).mean().mean()
 		if positive.ix[i, j]==positive.ix[i, j]:
 			if np.abs(positive.ix[i, j]-0.5) > 0.2:
 				textcol ='w'
@@ -114,7 +106,7 @@ plt.rcParams.update({'figure.autolayout': False})
 #Overall scorecard - vertical orientation
 plt.rcParams.update({'figure.autolayout': True})
 plt.figure(figsize=(10, 10))
-for i in range(1, len(loc_tag)):
+for i in range(1, 15):
 	for j in range(8):
 		if positive.ix[i, j]==positive.ix[i, j]:
 			if np.abs(positive.ix[i, j]-0.5) > 0.2:
@@ -138,7 +130,7 @@ plt.close('all')
 #Scorecards by subsystem
 plt.figure(figsize=(3.75,  5.75))
 plt.subplots_adjust(left=0.75)
-for j in range(0, len(loc_tag)):
+for j in range(0, 15):
 	plt.imshow(np.array([100*positive.ix[j, :8]], float).T, interpolation='nearest',
 	                        cmap=plt.cm.get_cmap('YlGnBu', 4), vmin=60, vmax=100)
 	for i in range(8):
