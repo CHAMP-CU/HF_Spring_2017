@@ -227,7 +227,6 @@ for i in np.argsort(np.array(dic['Order_Asked'][mask], int))[1:]:
 			print('%21s\t%i' % (category_names[j], total) + '\t%3.1f%%'*len(responsetypes) % tuple(width/total*100)+'\t%3.2f' % (pval)+'*'*(pval < 0.05))
 		print
 	elif (dic['Data_type'][mask][i] == 'Count')*(i > 5):
-
 		responsetypes = np.array(np.unique(subframe.ix[:, i].dropna()), int)
 		print("Category\t\tn\t"+"Mean"+ "\t%s"*len(responsetypes) % tuple(responsetypes)+ "\tp-value")
 		for j in range(len(category_names)):
@@ -265,9 +264,12 @@ for i in np.argsort(np.array(dic['Order_Asked'][mask], int))[1:]:
 			pval = stats.ttest_ind(pop1, pop2)[1]
 			print('%21s\t%i' % (category_names[j], description['count'])+'\t%3.1f'*(len(description)-1) % tuple(description[1:])+ '\t%3.2f' % (pval)+'*'*(pval < 0.05))
 		print
+		
+# --------- START ORDINAL DATA PLOT FUNCTIONS -----------
+# [0] indexing doesn't work for ordinal data
 
 def gauge_chart_ordinal_cross(responses, categories):
-	values = dic['Data_values'][responses.name==dic['Fall_2016_Question_Code']][0]
+	datVals = str(dic['Data_values'][responses.name==dic['Spring_2017_Question_Code']].values).split(';')
 	stack = DataFrame(columns=np.arange(1, 7), index=categories.columns)
 	for i in range(categories.shape[-1]):
 		stack.ix[i] = np.histogram(responses[categories.ix[:, i]],
@@ -275,8 +277,8 @@ def gauge_chart_ordinal_cross(responses, categories):
 	(100*stack[::-1].ix[:,  ::-1]).plot(kind='barh', stacked=True,
 		width=1, edgecolor='w', colors=plt.cm.RdBu_r(np.linspace(0.25, 0.75, 6)),
 		align='edge', figsize=(12, 6), legend=False)
-	plt.title("\n".join(wrap(dic['Question_Text']\
-			[responses.name==dic['Fall_2016_Question_Code']][0], 88)), size='medium')
+	plt.title("\n".join(wrap(str(dic['Question_Text']\
+			[responses.name==dic['Spring_2017_Question_Code']].values[0]), 88)), size='medium')
 	for i in range(6):
 		plt.axvline(np.cumsum(np.histogram(responses[categories.ix[:, 0]],
 		np.arange(1, 8), range=(1,7), normed=True)[0][::-1])[i]*100, color='lightgray')
@@ -284,52 +286,92 @@ def gauge_chart_ordinal_cross(responses, categories):
 	plt.xticks(np.arange(0, 101, 10), ('%i%% '*11 % tuple(np.arange(0, 101, 10))).split())
 	#plt.legend(bbox_to_anchor=(0., 1.0, 1.12, -0.25))
 	plt.legend(bbox_to_anchor=(0.3, -0.04, 0.5, 0), ncol=6, fontsize='medium', framealpha=0)
-	plt.annotate(values.split(';')[1].split('-')[1], (0.28, 0.04), size='small',
+	# Use tempStr to remove brackets associated with datVals
+	tempStr = datVals[1].split('-')[1]	
+	plt.annotate(tempStr.split('\'')[0], (0.28, 0.04), size='small',
 					xycoords='figure fraction', ha='right', va='center')
-	plt.annotate(values.split(';')[0].split('-')[1], (0.8, 0.04), size='small',
+	plt.annotate(datVals[0].split('-')[1], (0.8, 0.04), size='small',
 					xycoords='figure fraction', ha='left', va='center')
 	plt.subplots_adjust(left=0.18)
 
+def gauge_chart_ordinal_top(responses, category):
+	datVals = str(dic['Data_values'][responses.name==dic['Spring_2017_Question_Code']].values).split(';')
+	# Blank values are pulled in as NaN
+	if datVals == ['nan']:
+		datVals = ['']
+	stack = DataFrame(index=np.arange(1, 7), columns=[category.name])
+	stack[category.name] = np.histogram(responses[category], np.arange(1, 8), range=(1,7), normed=True)[0]
+	(100*stack)[::-1].T.plot(kind='barh', stacked=True, width=1, edgecolor='w',
+		colors=plt.cm.RdBu_r(np.linspace(0.25, 0.75, 6)), align='edge',
+		figsize=(12, 3), legend=False)
+	plt.title("\n".join(wrap(str(dic['Question_Text']\
+			[responses.name==dic['Spring_2017_Question_Code']].values[0]), 60)), size='x-large')
+	plt.axis('tight')
+	plt.yticks(size='x-large')
+	plt.xticks(np.arange(0, 101, 10), ('%i%% '*11 % tuple(np.arange(0, 101, 10))).split())
+	#plt.legend(bbox_to_anchor=(0., 1.0, 1.12, -0.25))
+	plt.legend(bbox_to_anchor=(0.3, -0.3, 0.5, 0), ncol=6, fontsize='medium', framealpha=0)
+	# Use tempStr to remove brackets associated with datVals
+	tempStr = datVals[1].split('-')[1]	
+	plt.annotate(tempStr.split('\'')[0], (0.28, 0.1), size='small',
+					xycoords='figure fraction', ha='right', va='center')
+	plt.annotate(datVals[0].split('-')[1], (0.8, 0.1), size='small',
+					xycoords='figure fraction', ha='left', va='center')
+	plt.subplots_adjust(left=0.12, bottom=0.3, top=0.7)
+
+# --------- END ORDINAL DATA PLOT FUNCTIONS -----------
+
+# --------- START CATEGORICAL COUNT AND BINARY DATA PLOT FUNCTIONS -----------
 
 def gauge_chart_categorical_cross(responses, categories):
-	values = dic['Data_values'][responses.name==dic['Fall_2016_Question_Code']][0].split(';')
-	stack = DataFrame(columns=values, index=categories.columns)
+	datVals = str(dic['Data_values'][responses.name==dic['Spring_2017_Question_Code']].values[0]).split(';')
+	# Blank values are pulled in as NaN
+	if datVals == ['nan']:
+		datVals = ['']
+	stack = DataFrame(columns=datVals, index=categories.columns)
 	for i in range(len(stack)):
 		for j in range(len(stack.T)):
-			stack.ix[i, j] = (np.array(responses[categories.ix[:, i]], str)==values[j]).sum()
+			stack.ix[i, j] = (np.array(responses[categories.ix[:, i]], str)==datVals[j]).sum()
 	(100*stack.T/stack.sum(1)).T[::-1].plot(kind='barh', stacked=True, width=1,
 		edgecolor='w', legend=False, align='edge', figsize=(12, 6))
-	plt.title("\n".join(wrap(dic['Question_Text']\
-			[responses.name==dic['Fall_2016_Question_Code']][0], 88)), size='medium')
+	plt.title("\n".join(wrap(str(dic['Question_Text']\
+			[responses.name==dic['Spring_2017_Question_Code']].values[0]), 88)), size='medium')
 	for i in range(len(stack.T)):
 		plt.axvline(np.cumsum((stack.T/stack.sum(1)).T.ix[0])[::-1][i]*100, color='lightgray')
 	plt.axis('tight')
 	plt.xticks(np.arange(0, 101, 10), ('%i%% '*11 % tuple(np.arange(0, 101, 10))).split())
-	plt.legend(bbox_to_anchor=(0.55, -0.05, 0.5, 0), ncol=len(values), fontsize='small')
+	plt.legend(bbox_to_anchor=(0.55, -0.05, 0.5, 0), ncol=len(datVals), fontsize='small')
 	plt.subplots_adjust(left=0.18, right=0.92)
 
-def gauge_chart_histogram_cross(responses, categories):
-	values = dic['Data_values'][responses.name==dic['Fall_2016_Question_Code']][0].split(';')
-	description = responses.describe()
-	h = 2*(description['75%']-description['25%'])/np.power(description['count'], 1./3.)
-	nbins = np.round((description['max']-description['min'])/h)
-	bins = np.histogram(responses, nbins)[1]
-	stack = DataFrame(columns=np.arange(nbins), index=categories.columns)
-	for i in range(len(stack)):
-		stack.ix[i] = np.histogram(responses[categories.ix[:, i]], bins)[0]
-	(100*stack.T/stack.sum(1)).T[::-1].plot(kind='barh', stacked=True, width=1,
-		edgecolor='w', legend=False, align='edge', figsize=(12, 6))
-	plt.title("\n".join(wrap(dic['Question_Text']\
-			[responses.name==dic['Fall_2016_Question_Code']][0], 88)), size='medium')
-	for i in range(len(stack.T)):
-		plt.axvline(np.cumsum((stack.T/stack.sum(1)).T.ix[0])[::-1][i]*100, color='lightgray')
+def gauge_chart_categorical_top(responses, category):
+	datVals = str(dic['Data_values'][responses.name==dic['Spring_2017_Question_Code']].values[0]).split(';')
+	# Blank values are pulled in as NaN
+	if datVals == ['nan']:
+		datVals = ['']
+	stack = pd.Series(index=datVals)
+	for j in range(len(datVals)):
+		stack.ix[datVals[j]]= (np.array(responses[category], str)==datVals[j]).sum()
+	stack = DataFrame(stack, columns=[category.name])
+	(100*stack/stack.sum()).T.plot(kind='barh', stacked=True, width=1,
+		edgecolor='w', legend=False, align='edge', figsize=(12, 3))
+	plt.title("\n".join(wrap(str(dic['Question_Text']\
+			[responses.name==dic['Spring_2017_Question_Code']].values[0]), 60)), size='x-large')
 	plt.axis('tight')
+	plt.yticks(size='x-large')
 	plt.xticks(np.arange(0, 101, 10), ('%i%% '*11 % tuple(np.arange(0, 101, 10))).split())
-	plt.legend(bbox_to_anchor=(0.55, -0.05, 0.5, 0), ncol=len(values), fontsize='small')
-	plt.subplots_adjust(left=0.18, right=0.92)
+	#plt.legend(bbox_to_anchor=(0., 1.0, 1.12, -0.25))
+	plt.legend(bbox_to_anchor=(0.3, -0.3, 0.5, 0), ncol=6, fontsize='medium', framealpha=0)
+	plt.subplots_adjust(left=0.12, bottom=0.3, top=0.7)
+
+# --------- END CATEGORICAL COUNT AND BINARY DATA PLOT FUNCTIONS -----------
+
+# --------- START CONTINUOUS DATA PLOT FUNCTIONS -----------
 
 def gauge_chart_box_cross(responses, categories):
-	values = dic['Data_values'][responses.name==dic['Fall_2016_Question_Code']][0]
+	datVals = str(dic['Data_values'][responses.name==dic['Spring_2017_Question_Code']].values[0]).split(';')
+	# Blank values are pulled in as NaN
+	if datVals == ['nan']:
+		datVals = ['']
 	stack = DataFrame(columns=np.arange(len(responses)), index=categories.columns)
 	for i in range(len(stack)):
 			stack.ix[i][ categories.ix[:, i]] = responses[categories.ix[:, i]]
@@ -338,40 +380,50 @@ def gauge_chart_box_cross(responses, categories):
 	else:
 		stack.ix[1:, ::-1].T.plot(kind='hist', legend=False, normed=True,
 						 figsize=(12, 6), grid=True, histtype='step', lw=3)
-		plt.legend(loc=0, ncol=len(values), fontsize='medium')
-	plt.title("\n".join(wrap(dic['Question_Text']\
-			[responses.name==dic['Fall_2016_Question_Code']][0], 88)), size='medium')
+		plt.legend(loc=0, ncol=len(datVals), fontsize='medium')
+	plt.title("\n".join(wrap(str(dic['Question_Text']\
+			[responses.name==dic['Spring_2017_Question_Code']].values[0]), 88)), size='medium')
 	#for i in range(len(stack.T)):
 	#	plt.axvline(np.cumsum((stack.T/stack.sum(1)).T.ix[0])[::-1][i]*100, color='lightgray')
 	#plt.axis('tight')
 	#plt.xticks(np.arange(0, 101, 10), ('%i%% '*11 % tuple(np.arange(0, 101, 10))).split())
 	#plt.legend(bbox_to_anchor=(0.55, -0.05, 0.5, 0), ncol=len(values), fontsize='small')
 	plt.subplots_adjust(left=0.18)
-	plt.xlabel(values)
+	plt.xlabel(datVals[0])
 
 def histogram_topline(responses):
-	values = dic['Data_values'][responses.name==dic['Fall_2016_Question_Code']][0]
+	datVals = str(dic['Data_values'][responses.name==dic['Spring_2017_Question_Code']].values[0]).split(';')
+	# Blank values are pulled in as NaN
+	if datVals == ['nan']:
+		datVals = ['']
 	responses[::-1].T.plot(kind='hist', legend=False, normed=True,
 						 figsize=(12, 6), grid=True)
-	plt.title("\n".join(wrap(dic['Question_Text']\
-			[responses.name==dic['Fall_2016_Question_Code']][0], 88)), size='medium')
+	plt.title("\n".join(wrap(str(dic['Question_Text']\
+			[responses.name==dic['Spring_2017_Question_Code']].values[0]), 88)), size='medium')
 	#for i in range(len(stack.T)):
 	#	plt.axvline(np.cumsum((stack.T/stack.sum(1)).T.ix[0])[::-1][i]*100, color='lightgray')
 	plt.axis('tight')
 	#plt.xticks(np.arange(0, 101, 10), ('%i%% '*11 % tuple(np.arange(0, 101, 10))).split())
 	#plt.legend(bbox_to_anchor=(0.55, -0.05, 0.5, 0), ncol=len(values), fontsize='small')
 	#plt.subplots_adjust(left=0.18, right=0.92)
-	plt.xlabel(values)
+	plt.xlabel(datVals[0])
+
+# --------- END CONTINUOUS DATA PLOT FUNCTIONS -----------
+
+# --------- START MULTIPLE SELECTION PLOT FUNCTIONS -----------
 
 def multiple_selection(responses, categories):
-	values = dic['Data_values'][responses.name==dic['Fall_2016_Question_Code']][0].split(';')
-	selections = -DataFrame(index=df.index, columns= values,
+	datVals = str(dic['Data_values'][responses.name==dic['Spring_2017_Question_Code']].values[0]).split(';')
+	# Blank values are pulled in as NaN
+	if datVals == ['nan']:
+		datVals = ['']
+	selections = -DataFrame(index=df.index, columns= datVals,
 			dtype=bool)
 	for i in np.where(responses==responses)[0]:
 		for j in range(selections.shape[-1]):
 			selections.ix[i, j] =  selections.columns[j] in responses[i]
 	(100*selections.mean(0)[::-1]).plot(kind='barh', figsize=(10, 10))
-	plt.yticks(np.arange(len(values)), [ '\n'.join(wrap(label, 50)) for label in values[::-1]],
+	plt.yticks(np.arange(len(datVals)), [ '\n'.join(wrap(label, 50)) for label in datVals[::-1]],
 				size='small')
 	plt.subplots_adjust(left=0.45)
 	#plt.tight_layout()
@@ -383,46 +435,34 @@ def multiple_selection(responses, categories):
 	#		contin.ix[i, j] =  selections.ix[:, j].T.ix[categories.ix[:, i]].sum()
 	#plt.imshow(contin)
 
-def gauge_chart_ordinal_top(responses, category):
-	values = dic['Data_values'][responses.name==dic['Fall_2016_Question_Code']][0]
-	stack = DataFrame(index=np.arange(1, 7), columns=[category.name])
-	stack[category.name] = np.histogram(responses[category], np.arange(1, 8), range=(1,7), normed=True)[0]
-	(100*stack)[::-1].T.plot(kind='barh', stacked=True, width=1, edgecolor='w',
-		colors=plt.cm.RdBu_r(np.linspace(0.25, 0.75, 6)), align='edge',
-		figsize=(12, 3), legend=False)
-	plt.title("\n".join(wrap(dic['Question_Text']\
-			[responses.name==dic['Fall_2016_Question_Code']][0], 60)), size='x-large')
+# --------- START MULTIPLE SELECTION PLOT FUNCTIONS -----------
+
+# --------- START UNUSED FUNCTIONS -----------
+def gauge_chart_histogram_cross(responses, categories):
+	datVals = str(dic['Data_values'][responses.name==dic['Spring_2017_Question_Code']].values[0]).split(';')
+	# Blank values are pulled in as NaN
+	if datVals == ['nan']:
+		datVals = ['']
+	description = responses.describe()
+	h = 2*(description['75%']-description['25%'])/np.power(description['count'], 1./3.)
+	nbins = np.round((description['max']-description['min'])/h)
+	bins = np.histogram(responses, nbins)[1]
+	stack = DataFrame(columns=np.arange(nbins), index=categories.columns)
+	for i in range(len(stack)):
+		stack.ix[i] = np.histogram(responses[categories.ix[:, i]], bins)[0]
+	(100*stack.T/stack.sum(1)).T[::-1].plot(kind='barh', stacked=True, width=1,
+		edgecolor='w', legend=False, align='edge', figsize=(12, 6))
+	plt.title("\n".join(wrap(str(dic['Question_Text']\
+			[responses.name==dic['Spring_2017_Question_Code']].values[0]), 88)), size='medium')
+	for i in range(len(stack.T)):
+		plt.axvline(np.cumsum((stack.T/stack.sum(1)).T.ix[0])[::-1][i]*100, color='lightgray')
 	plt.axis('tight')
-	plt.yticks(size='x-large')
 	plt.xticks(np.arange(0, 101, 10), ('%i%% '*11 % tuple(np.arange(0, 101, 10))).split())
-	#plt.legend(bbox_to_anchor=(0., 1.0, 1.12, -0.25))
-	plt.legend(bbox_to_anchor=(0.3, -0.3, 0.5, 0), ncol=6, fontsize='medium', framealpha=0)
-	plt.annotate(values.split(';')[1].split('-')[1], (0.28, 0.1), size='small',
-					xycoords='figure fraction', ha='right', va='center')
-	plt.annotate(values.split(';')[0].split('-')[1], (0.8, 0.1), size='small',
-					xycoords='figure fraction', ha='left', va='center')
-	plt.subplots_adjust(left=0.12, bottom=0.3, top=0.7)
+	plt.legend(bbox_to_anchor=(0.55, -0.05, 0.5, 0), ncol=len(datVals), fontsize='small')
+	plt.subplots_adjust(left=0.18, right=0.92)
+# --------- END UNUSED FUNCTIONS -----------
 
-
-def gauge_chart_categorical_top(responses, category):
-	values = dic['Data_values'][responses.name==dic['Fall_2016_Question_Code']][0].split(';')
-	stack = pd.Series(index=values)
-	for j in range(len(values)):
-		stack.ix[values[j]]= (np.array(responses[category], str)==values[j]).sum()
-	stack = DataFrame(stack, columns=[category.name])
-	(100*stack/stack.sum()).T.plot(kind='barh', stacked=True, width=1,
-		edgecolor='w', legend=False, align='edge', figsize=(12, 3))
-	plt.title("\n".join(wrap(dic['Question_Text']\
-			[responses.name==dic['Fall_2016_Question_Code']][0], 60)), size='x-large')
-	plt.axis('tight')
-	plt.yticks(size='x-large')
-	plt.xticks(np.arange(0, 101, 10), ('%i%% '*11 % tuple(np.arange(0, 101, 10))).split())
-	#plt.legend(bbox_to_anchor=(0., 1.0, 1.12, -0.25))
-	plt.legend(bbox_to_anchor=(0.3, -0.3, 0.5, 0), ncol=6, fontsize='medium', framealpha=0)
-	plt.subplots_adjust(left=0.12, bottom=0.3, top=0.7)
-
-
-makefigs = False
+makefigs = True
 if makefigs:
 	for i in np.argsort(np.array(dic['Order_Asked'][mask], int))[1:]:
 		fignum = np.array(dic['Order_Asked'][mask], int)[i]
