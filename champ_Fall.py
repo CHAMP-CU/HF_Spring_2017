@@ -285,7 +285,6 @@ def gauge_chart_ordinal_cross(responses, categories):
 
 def gauge_chart_categorical_cross(responses, categories):
 	values = dic['Data_values'][responses.name==dic['Fall_2016_Question_Code']][0].split(';')
-	#sys.exit()
 	stack = DataFrame(columns=values, index=categories.columns)
 	for i in range(len(stack)):
 		for j in range(len(stack.T)):

@@ -1,3 +1,12 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from pandas import DataFrame
+import pandas as pd
+from textwrap import wrap, fill
+from scipy import stats
+import sys
+import time
+
 from load_CHAMP import *
 
 ansur_men = pd.read_csv('ansur_men.txt', delimiter='\t')

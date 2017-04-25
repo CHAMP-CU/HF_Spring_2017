@@ -58,7 +58,7 @@ for i in range(len(datatype)):
 		datatype[i] = np.object
 
 # Save the file path and name of the data
-responses_file = "Test Responses.xlsx"
+responses_file = "Spring 2017 CHAMP Responses.xlsx"
 
 #Output path
 output_path = '../results'
@@ -74,7 +74,7 @@ df.ix[np.where(df<0)] = np.nan
 df.columns = dic["Spring_2017_Question_Code"]
 
 #Exclude responses according to dictionary
-exclude = np.zeros(df.shape, bool)
+'''exclude = np.zeros(df.shape, bool)
 for i in range(len(df.T)):
 	# Skips rows that have nothing in exclude_from column
 	if pd.isnull(dic['Exclude_from'][i]):
@@ -89,13 +89,58 @@ for i in range(len(df.T)):
 			test = int(code[2])
 			crew = int(code[2])
 			exclude[(df.crew_test==test)*(df.crew_test==crew), i] = True
-df[exclude*(datatype!=np.object)] = np.nan
+df[exclude*(datatype!=np.object)] = np.nan'''
 
 #===Ad-hoc data corrections go here===
 #	Always justify corrections to the data
 
+# Changing zeros to nan in # of spaceflights and hours in space
+# Kimia Seyedmadani
+df.ix[3,16] = np.nan
+df.ix[3,17] = np.nan
+#df.loc[(df.crew_id == 1)*(df.crew_test == 0), 'crew_name']
 
+# Venkata Vimal Kakaraparti
+df.ix[6,16] = np.nan
+df.ix[6,17] = np.nan
 
+# Venkata Vimal Kakaraparti
+df.ix[9,16] = np.nan
+df.ix[9,17] = np.nan
+
+# Venkata Vimal Kakaraparti
+df.ix[15,16] = np.nan
+df.ix[15,17] = np.nan
+
+# Venkata Vimal Kakaraparti
+df.ix[25,16] = np.nan
+df.ix[25,17] = np.nan
+
+# Allison Anderson entered the wrong Crew Member ID
+df.ix[2,3] = 3
+
+# Thomas Jeffries entered the wrong Crew Member ID
+df.ix[11,3] = 3
+
+# Participants in test 3 given the wrong test number
+df.ix[10,2] = 3
+df.ix[11,2] = 3
+df.ix[12,2] = 3
+df.ix[13,2] = 3
+
+'''
+#T17CM4 swapped bideltoid breadth and thumb-tip reach
+thumb = df.crew_shoulder.ix[(df.crew_id==4)*(df.crew_test==17)]
+shoulder = df.crew_thumb.ix[(df.crew_id==4)*(df.crew_test==17)]
+df.crew_shoulder.ix[(df.crew_id==4)*(df.crew_test==17)] = shoulder
+df.crew_thumb.ix[(df.crew_id==4)*(df.crew_test==17)] = thumb
+
+#T05CM1 entered his height as 59 instead of 69 inches
+df.crew_height.ix[(df.crew_id==1)*(df.crew_test==5)] += 10
+
+#Corbin Cowan entered the wrong Crew Member ID
+df.crew_id[df.crew_name=='Corbin Cowan'] = 3
+'''
 #=== End ad-hoc corrections ===
 
 # Classify participant experience
@@ -155,26 +200,18 @@ plt.rcParams.update({'figure.autolayout': False})
 
 
 # Read in the particpant nationalities responses
-birth_nationalities_file = "../participant_birth_nationalities.xlsx"
 current_nationalities_file = "../participant_current_nationalities.xlsx"
-national_identities_file = "../participant_national_identities.xlsx"
-languages_file = "../participant_languages.xlsx"
 majors_file = "../participant_majors.xlsx"
 
-bn_f = pd.read_excel(birth_nationalities_file, header=0)
 cn_f = pd.read_excel(current_nationalities_file, header=0)
-ni_f = pd.read_excel(national_identities_file, header=0)
-l_f = pd.read_excel(languages_file, header=0)
 m_f  = pd.read_excel(majors_file, header=0)
 
 # Identify the stem vs non-stem majors_file
 m_f['stem_major'] = (m_f.aerospace_engineering==1) | (m_f.physics==1) | \
- 	(m_f.math==1) | (m_f.chemical_engineering==1) | \
-	(m_f.biomedical_engineering==1) | (m_f.civil_engineering==1) | \
-	(m_f.electrical_engineering==1) | (m_f.astronomy_astrophysics==1) | \
-	(m_f.geophysics==1) | (m_f.mechanial_engineering==1) | \
-	(m_f.computer_science==1) | (m_f.biology==1) | \
-	(m_f.material_engineering==1)
+ 	(m_f.math==1) | (m_f.astronautics_engineering) | \
+	(m_f.chemical_engineering==1) | (m_f.biomedical_engineering==1) | \
+	(m_f.electrical_engineering==1) | (m_f.mechanial_engineering==1) | \
+	(m_f.computer_science==1)
 
 m_f['non_stem'] = -m_f.stem_major
 
@@ -197,8 +234,7 @@ categories['Space Experience'] = np.copy(experience.ix[:, [7, 8, 9, 10, 11, 12]]
 categories['Expert'] = np.copy((experience.sum(1)>=3)*categories['Space Experience'])
 categories['Any Experience'] = np.copy(experience.sum(1)>0)
 categories['No Experience'] = np.copy(experience.sum(1)==0)
-categories['US National'] = df.crew_national.str.count("United|America|USA|US|United States|U.S.|us|usa") > 0
-categories['US National'] += (bn_f['united_states']==1)+(cn_f['united_states']==1)+(ni_f['united_states']==1)
+categories['US National'] = (cn_f['united_states']==1)
 categories['International'] = -categories['US National']
 categories['30 and older'] = np.copy(df.crew_age>= 30)
 categories['Under 30'] = np.copy(df.crew_age< 30)
@@ -262,7 +298,7 @@ plt.savefig('../results/figs/categories')
 plt.close()
 
 plt.figure(figsize=(10, 10))
-plt.imshow(np.ma.masked_values(categories.T.dot(categories.astype(int))/categories.sum(), 0), 
+plt.imshow(np.array(np.ma.masked_values(categories.T.dot(categories.astype(int))/categories.sum(), 0), dtype=float), 
 			interpolation='nearest', cmap=plt.cm.Reds)
 plt.yticks(np.arange(25), category_names)
 plt.gca().xaxis.tick_top()

@@ -67,11 +67,11 @@ mask+= (dic['Data_type']=="Free response")
 mask+= (dic['Data_type']=="Multiple selection")+(dic['Data_type']=="Multiple Selection")
 mask+= (dic['Data_type']=="Continuous")'''
 
-#Exclude questions with fewer than 8 responses
-#8 responses because first two tests were dry runs with CHAMP and expert review
+#Exclude questions with fewer than 6 responses
+#6 responses because test 0 was CHAMP dry and test 1 was expert review
 #May change this number based on how many dry runs we do
 #Subframe is dataframe that has questions with less than 8 responses dropped
-mask = np.array(df.count(axis=0) > 8)#+(df.sum(0).str.count('NaN') < len(df)-8)
+mask = np.array(df.count(axis=0) > 6)#+(df.sum(0).str.count('NaN') < len(df)-8)
 subframe = df.ix[:, mask]
 
 #Compute interface averages
@@ -164,18 +164,18 @@ for j in range(0, len(loc_tag)):
 # Null hypothesis = sub population data is drawn from the same distribution as the total population data
 # Total population data is the total number of participants
 print(time.asctime())
-print('20 tests')
-print('80 participants')
+print('6 tests')
+print('24 participants')
 for i in np.argsort(np.array(dic['Order_Asked'][mask], int))[1:]:
 	print('Q%03i' % np.array(dic['Order_Asked'][mask], int)[i])
-	print(dic['Location'][mask][i])
-	print(dic['Question_Text'][mask][i])
+	print(dic['Location'][mask].iloc[i])
+	print(dic['Question_Text'][mask].iloc[i])
 	tags = tag_matrix.ix[:, mask].ix[:, i]
 	print("Tags: "+'%s, '*tags.sum() % tuple(tags.index.str.lower()[tags]))
 	
 	# Checks Ordinal data, which is used in rating questions (rate from 1-6)
-	if dic['Data_type'][mask][i] == 'Ordinal':
-		print(dic['Data_values'][mask][i])
+	if dic['Data_type'][mask].iloc[i] == 'Ordinal':
+		print(dic['Data_values'][mask].iloc[i])
 		print("Category\t\tn\tMean\t1\t2\t3\t4\t5\t6\t(4-6)\tpWilc.\tpBinom.")
 		# Rates data by each demographic
 		for j in range(len(category_names)):
@@ -193,8 +193,8 @@ for i in np.argsort(np.array(dic['Order_Asked'][mask], int))[1:]:
 			print('%21s\t%i' % (category_names[j], total) + '\t%2.1f' % (subframe.ix[:, i].ix[categories.ix[:, j]]).mean() + '\t%3.1f%%'*6 % tuple(width*100)+'\t%3.1f%%' % (width[3:].sum()*100) +'\t%3.2f' % (pval)+'*'*(pval < 0.05)+'\t%3.2f' % (pval_binom)+'*'*(pval_binom < 0.05))
 			#print '%21s\t%i' % (category_names[j], total) + '\t%2.1f' % (subframe.ix[:, i].ix[categories.ix[:, j]]).mean() + '\t%3.1f%%'*6 % tuple(width*100) +'\t%3.1f%%' % (width[3:].sum()*100)+'\t%3.2f' % (pval_binom)+'*'*(pval < 0.05)
 		print
-	elif dic['Data_type'][mask][i] == 'Binary':
-		responsetypes = dic['Data_values'][mask][i].split(';')
+	elif dic['Data_type'][mask].iloc[i] == 'Binary':
+		responsetypes = dic['Data_values'][mask].iloc[i].split(';')
 		print("Category\t\t n\t"+ '%s\t'*len(responsetypes) % tuple(responsetypes)+"p-value")
 		for j in range(len(category_names)):
 			yes = (subframe.ix[:, i].ix[categories.ix[:, j]]==responsetypes[0]).sum()
@@ -207,8 +207,8 @@ for i in np.argsort(np.array(dic['Order_Asked'][mask], int))[1:]:
 				pval = np.nan
 			print('%21s\t%i' % (category_names[j], total) + '\t%3.1f%%'*2 % (yes*1./total*100, no*1./total*100)+'\t%3.2f' % (pval)+'*'*(pval < 0.05))
 		print
-	elif (dic['Data_type'][mask][i] == 'Categorical') *(i>2):
-		responsetypes = dic['Data_values'][mask][i].split(';')
+	elif (dic['Data_type'][mask].iloc[i] == 'Categorical') *(i>2):
+		responsetypes = dic['Data_values'][mask].iloc[i].split(';')
 		print("Category\t\t n\t"+ '%s\t'*len(responsetypes) % tuple(responsetypes)+"p-value")
 		for j in range(len(category_names)):
 			width = np.zeros(len(responsetypes))
@@ -226,7 +226,7 @@ for i in np.argsort(np.array(dic['Order_Asked'][mask], int))[1:]:
 
 			print('%21s\t%i' % (category_names[j], total) + '\t%3.1f%%'*len(responsetypes) % tuple(width/total*100)+'\t%3.2f' % (pval)+'*'*(pval < 0.05))
 		print
-	elif (dic['Data_type'][mask][i] == 'Count')*(i > 5):
+	elif (dic['Data_type'][mask].iloc[i] == 'Count')*(i > 5):
 		responsetypes = np.array(np.unique(subframe.ix[:, i].dropna()), int)
 		print("Category\t\tn\t"+"Mean"+ "\t%s"*len(responsetypes) % tuple(responsetypes)+ "\tp-value")
 		for j in range(len(category_names)):
@@ -237,7 +237,7 @@ for i in np.argsort(np.array(dic['Order_Asked'][mask], int))[1:]:
 			pval = stats.ranksums(subframe.ix[:, i].ix[categories.ix[:, j]].dropna(), subframe.ix[:, i].ix[-categories.ix[:, j]].dropna())[1]
 			print('%21s\t%i' % (category_names[j], total) + '\t%2.1f' % (subframe.ix[:, i].ix[categories.ix[:, j]]).mean() + '\t%3.1f%%'*len(responsetypes) % tuple(width*100)+'\t%3.2f' % (pval)+'*'*(pval < 0.05))
 		print
-	elif (dic['Data_type'][mask][i].lower() == 'free response') or (dic['Data_type'][mask][i] == 'Comment'):
+	elif (dic['Data_type'][mask].iloc[i].lower() == 'free response') or (dic['Data_type'][mask].iloc[i] == 'Comment'):
 		for j in range(len(subframe.ix[:, i])):
 			if (subframe.ix[:, i][j] !='NaN') and (subframe.ix[:, i][j]== subframe.ix[:, i][j]):
 				print
@@ -245,7 +245,7 @@ for i in np.argsort(np.array(dic['Order_Asked'][mask], int))[1:]:
 
 				print('\t'+'\n\t'.join(wrap(subframe.ix[:, i][j], 70)))
 				print('\n\t\t'.join(wrap(cat_tags, 70)))
-	elif (dic['Data_type'][mask][i].lower() == 'multiple selection'):
+	elif (dic['Data_type'][mask].iloc[i].lower() == 'multiple selection'):
 		selections = -DataFrame(index=df.index, columns= dic['Data_values'][mask][i].split(';'),
 				dtype=bool)
 		for j in np.where(subframe.ix[:, i]==subframe.ix[:, i])[0]:
@@ -254,8 +254,8 @@ for i in np.argsort(np.array(dic['Order_Asked'][mask], int))[1:]:
 
 		for j in range(len(selections.columns)):
 			print('%70s\t' % (selections.columns[j]) + '\t%2.1f%%' % (100*selections.mean(0)[j]))
-	elif dic['Data_type'][mask][i] == 'Continuous':
-		print(dic['Data_values'][mask][i])
+	elif dic['Data_type'][mask].iloc[i] == 'Continuous':
+		print(dic['Data_values'][mask].iloc[i])
 		print("Category\t\tn\tMean\tStd.\tMin.\t25%\t50%\t75%\tMax.\tp-value")
 		for j in range(len(category_names)):
 			description = subframe.ix[:, i].ix[categories.ix[:, j]].describe()
@@ -466,7 +466,7 @@ makefigs = True
 if makefigs:
 	for i in np.argsort(np.array(dic['Order_Asked'][mask], int))[1:]:
 		fignum = np.array(dic['Order_Asked'][mask], int)[i]
-		if dic['Data_type'][mask][i] == 'Ordinal':
+		if dic['Data_type'][mask].iloc[i] == 'Ordinal':
 			gauge_chart_ordinal_cross(subframe.ix[:, i], categories)
 			plt.savefig(output_path+"/figs/all/"+'%03i' % fignum)
 			plt.close()
@@ -477,9 +477,9 @@ if makefigs:
 				gauge_chart_ordinal_cross(subframe.ix[:, i], subcats[j])
 				plt.savefig(output_path+"/figs/"+subcat_names[j]+'/'+'%03i' % fignum)
 				plt.close()
-		elif (dic['Data_type'][mask][i] == 'Categorical')+\
-				(dic['Data_type'][mask][i] == 'Binary')+\
-				(dic['Data_type'][mask][i] == 'Count'):
+		elif (dic['Data_type'][mask].iloc[i] == 'Categorical')+\
+				(dic['Data_type'][mask].iloc[i] == 'Binary')+\
+				(dic['Data_type'][mask].iloc[i] == 'Count'):
 			gauge_chart_categorical_cross(subframe.ix[:, i], categories)
 			plt.savefig(output_path+"/figs/all/"+'%03i' % fignum)
 			plt.close()
@@ -490,7 +490,7 @@ if makefigs:
 				gauge_chart_categorical_cross(subframe.ix[:, i], subcats[j])
 				plt.savefig(output_path+"/figs/"+subcat_names[j]+'/'+'%03i' % fignum)
 				plt.close()
-		elif (dic['Data_type'][mask][i] == 'Continuous'):
+		elif (dic['Data_type'][mask].iloc[i] == 'Continuous'):
 			gauge_chart_box_cross(subframe.ix[:, i], categories)
 			plt.savefig(output_path+"/figs/all/"+'%03i' % fignum)
 			plt.close()
@@ -501,7 +501,7 @@ if makefigs:
 				gauge_chart_box_cross(subframe.ix[:, i], subcats[j])
 				plt.savefig(output_path+"/figs/"+subcat_names[j]+'/'+'%03i' % fignum)
 				plt.close()
-		elif (dic['Data_type'][mask][i].lower() == 'multiple selection'):
+		elif (dic['Data_type'][mask].iloc[i].lower() == 'multiple selection'):
 			multiple_selection(subframe.ix[:, i], categories)
 			plt.savefig(output_path+"/figs/topline/"+'%03i' % fignum)
 			plt.close()
