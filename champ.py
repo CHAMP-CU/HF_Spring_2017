@@ -67,11 +67,11 @@ mask+= (dic['Data_type']=="Free response")
 mask+= (dic['Data_type']=="Multiple selection")+(dic['Data_type']=="Multiple Selection")
 mask+= (dic['Data_type']=="Continuous")'''
 
-#Exclude questions with fewer than 6 responses
-#6 responses because test 0 was CHAMP dry and test 1 was expert review
+#Exclude questions with fewer than 4 responses
+#4 responses because test 1 was expert review (dry run not counted)
 #May change this number based on how many dry runs we do
 #Subframe is dataframe that has questions with less than 8 responses dropped
-mask = np.array(df.count(axis=0) > 6)#+(df.sum(0).str.count('NaN') < len(df)-8)
+mask = np.array(df.count(axis=0) > 4)#+(df.sum(0).str.count('NaN') < len(df)-8)
 subframe = df.ix[:, mask]
 
 #Compute interface averages
@@ -246,7 +246,7 @@ for i in np.argsort(np.array(dic['Order_Asked'][mask], int))[1:]:
 				print('\t'+'\n\t'.join(wrap(subframe.ix[:, i][j], 70)))
 				print('\n\t\t'.join(wrap(cat_tags, 70)))
 	elif (dic['Data_type'][mask].iloc[i].lower() == 'multiple selection'):
-		selections = -DataFrame(index=df.index, columns= dic['Data_values'][mask][i].split(';'),
+		selections = -DataFrame(index=df.index, columns= dic['Data_values'][mask].iloc[i].split(';'),
 				dtype=bool)
 		for j in np.where(subframe.ix[:, i]==subframe.ix[:, i])[0]:
 			for k in range(selections.shape[-1]):

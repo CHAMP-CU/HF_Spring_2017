@@ -73,74 +73,27 @@ df.ix[np.where(df<0)] = np.nan
 # Change the column names of the DataFrame
 df.columns = dic["Spring_2017_Question_Code"]
 
-#Exclude responses according to dictionary
-'''exclude = np.zeros(df.shape, bool)
-for i in range(len(df.T)):
-	# Skips rows that have nothing in exclude_from column
-	if pd.isnull(dic['Exclude_from'][i]):
-		continue
-	codes = dic['Exclude_from'][i].split(',')
-	for code in codes:
-		if len(code)==3:
-			test = int(code[1:])
-			exclude[df.crew_test==test, i] = True
-		else:
-			re.split("T|CM", code)[1:]
-			test = int(code[2])
-			crew = int(code[2])
-			exclude[(df.crew_test==test)*(df.crew_test==crew), i] = True
-df[exclude*(datatype!=np.object)] = np.nan'''
-
 #===Ad-hoc data corrections go here===
 #	Always justify corrections to the data
 
-# Changing zeros to nan in # of spaceflights and hours in space
-# Kimia Seyedmadani
-df.ix[3,16] = np.nan
-df.ix[3,17] = np.nan
-#df.loc[(df.crew_id == 1)*(df.crew_test == 0), 'crew_name']
-
-# Venkata Vimal Kakaraparti
-df.ix[6,16] = np.nan
-df.ix[6,17] = np.nan
-
-# Venkata Vimal Kakaraparti
-df.ix[9,16] = np.nan
-df.ix[9,17] = np.nan
-
-# Venkata Vimal Kakaraparti
-df.ix[15,16] = np.nan
-df.ix[15,17] = np.nan
-
-# Venkata Vimal Kakaraparti
-df.ix[25,16] = np.nan
-df.ix[25,17] = np.nan
-
 # Allison Anderson entered the wrong Crew Member ID
-df.ix[2,3] = 3
+df.ix[0,3] = 3
 
 # Thomas Jeffries entered the wrong Crew Member ID
-df.ix[11,3] = 3
+df.ix[9,3] = 3
 
 # Participants in test 3 given the wrong test number
+df.ix[8,2] = 3
+df.ix[9,2] = 3
 df.ix[10,2] = 3
 df.ix[11,2] = 3
-df.ix[12,2] = 3
-df.ix[13,2] = 3
 
-'''
-#T17CM4 swapped bideltoid breadth and thumb-tip reach
-thumb = df.crew_shoulder.ix[(df.crew_id==4)*(df.crew_test==17)]
-shoulder = df.crew_thumb.ix[(df.crew_id==4)*(df.crew_test==17)]
-df.crew_shoulder.ix[(df.crew_id==4)*(df.crew_test==17)] = shoulder
-df.crew_thumb.ix[(df.crew_id==4)*(df.crew_test==17)] = thumb
+# Allison Anderson left testing at the end of the work scenario
+df.ix[0,64:len(df.T)] = np.nan
 
-#T05CM1 entered his height as 59 instead of 69 inches
-df.crew_height.ix[(df.crew_id==1)*(df.crew_test==5)] += 10
+# Kimia Seyedmadani left testing at the end of the work scenario
+df.ix[1,64:len(df.T)] = np.nan
 
-#Corbin Cowan entered the wrong Crew Member ID
-df.crew_id[df.crew_name=='Corbin Cowan'] = 3
-'''
 #=== End ad-hoc corrections ===
 
 # Classify participant experience
